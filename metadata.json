@@ -1,0 +1,8 @@
+{
+  "name": "Remix TopoTanks",
+  "description": "Real Earth Topographic Artillery Game powered by Google Maps Platform Elevation API and Satellite Imagery",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
