@@ -1,5 +1,5 @@
 import React from 'react';
-import { Trophy, RotateCcw, Globe, Award, Target, Flame, Layers } from 'lucide-react';
+import { Trophy, RotateCcw, Globe, Award, Target, Flame, Layers, Palette } from 'lucide-react';
 import { MatchStats, Player } from '../types/game';
 import { audioService } from '../services/audioService';
 
@@ -9,6 +9,7 @@ interface GameOverModalProps {
   stats: MatchStats;
   onRematch: () => void;
   onSelectArena: () => void;
+  onOpenArmory?: () => void;
 }
 
 export const GameOverModal: React.FC<GameOverModalProps> = ({
@@ -17,6 +18,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
   stats,
   onRematch,
   onSelectArena,
+  onOpenArmory,
 }) => {
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -109,24 +111,37 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
         </div>
 
         {/* Action Buttons */}
-        <div className="p-6 flex items-center gap-3">
+        <div className="p-6 flex flex-wrap items-center gap-3">
           <button
             onClick={() => {
               audioService.playUiClick();
               onRematch();
             }}
-            className="flex-1 py-3 px-4 rounded-xl font-mono font-bold text-xs bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/40 transition cursor-pointer"
+            className="flex-1 min-w-[120px] py-3 px-4 rounded-xl font-mono font-bold text-xs bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/40 transition cursor-pointer"
           >
             <RotateCcw className="w-4 h-4" />
             REMATCH
           </button>
+
+          {onOpenArmory && (
+            <button
+              onClick={() => {
+                audioService.playUiClick();
+                onOpenArmory();
+              }}
+              className="flex-1 min-w-[120px] py-3 px-4 rounded-xl font-mono font-bold text-xs bg-purple-900/80 hover:bg-purple-800 text-purple-200 border border-purple-600/70 flex items-center justify-center gap-2 shadow transition cursor-pointer"
+            >
+              <Palette className="w-4 h-4 text-purple-400" />
+              ARMORY
+            </button>
+          )}
 
           <button
             onClick={() => {
               audioService.playUiClick();
               onSelectArena();
             }}
-            className="flex-1 py-3 px-4 rounded-xl font-mono font-bold text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center justify-center gap-2 transition cursor-pointer"
+            className="flex-1 min-w-[120px] py-3 px-4 rounded-xl font-mono font-bold text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center justify-center gap-2 transition cursor-pointer"
           >
             <Globe className="w-4 h-4 text-sky-400" />
             NEW THEATER

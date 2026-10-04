@@ -165,6 +165,7 @@ export interface Player {
   isAi: boolean;
   aiLevel: AiLevel;
   cadetUsesRemaining: number;
+  skinId?: string;
 }
 
 export interface TrailPoint {

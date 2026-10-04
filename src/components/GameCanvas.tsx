@@ -13,6 +13,7 @@ import {
   TERRAIN_WIDTH,
 } from '../game/terrain';
 import { calculateLaunchVelocity, GRAVITY, WIND_FACTOR } from '../game/physics';
+import { drawTankSprite } from '../game/tankRenderer';
 
 interface GameCanvasProps {
   heights: number[];
@@ -98,9 +99,15 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
       }
     }
 
-    // 6. Render Tanks
+    // 6. Render Tanks with Customizable Skins
     players.forEach((player) => {
-      drawTank(ctx, player, player.id === activePlayerId);
+      drawTankSprite({
+        ctx,
+        player,
+        isActive: player.id === activePlayerId,
+        showHealthBar: true,
+        timeMs: Date.now(),
+      });
     });
 
     // 7. Render Projectiles & Trails
@@ -320,120 +327,6 @@ function drawTerrain(
   ctx.stroke();
 
   ctx.restore();
-}
-
-function drawTank(
-  ctx: CanvasRenderingContext2D,
-  player: Player,
-  isActive: boolean
-) {
-  const { x, y } = player.position;
-
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.rotate(player.tiltAngle);
-
-  // Active player spotlight ring
-  if (isActive) {
-    ctx.strokeStyle = player.color;
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.arc(0, -10, 26, 0, Math.PI * 2);
-    ctx.stroke();
-
-    // Small active beacon triangle above tank
-    ctx.fillStyle = player.color;
-    ctx.beginPath();
-    ctx.moveTo(0, -42);
-    ctx.lineTo(-6, -50);
-    ctx.lineTo(6, -50);
-    ctx.closePath();
-    ctx.fill();
-  }
-
-  // 1. Tank Treads (bottom)
-  ctx.fillStyle = '#1e293b';
-  ctx.beginPath();
-  ctx.roundRect(-16, -6, 32, 8, 3);
-  ctx.fill();
-  ctx.strokeStyle = '#475569';
-  ctx.lineWidth = 1;
-  ctx.stroke();
-
-  // Tread road wheels
-  ctx.fillStyle = '#64748b';
-  for (let w = -11; w <= 11; w += 7) {
-    ctx.beginPath();
-    ctx.arc(w, -2, 2.5, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  // 2. Tank Armored Chassis
-  ctx.fillStyle = player.color;
-  ctx.beginPath();
-  ctx.roundRect(-13, -13, 26, 8, 2);
-  ctx.fill();
-  ctx.strokeStyle = '#0f172a';
-  ctx.lineWidth = 1;
-  ctx.stroke();
-
-  // 3. Tank Cannon Barrel
-  // player.angle is world angle: 0° = right, 90° = vertical up, 180° = left.
-  // Because the local canvas has been rotated by player.tiltAngle, subtract tiltAngle
-  // so that the barrel in world coordinates points at player.angle exactly.
-  const worldRad = (-player.angle * Math.PI) / 180;
-  const localBarrelRad = worldRad - player.tiltAngle;
-  const barrelLength = 22;
-  const barrelX = Math.cos(localBarrelRad) * barrelLength;
-  const barrelY = Math.sin(localBarrelRad) * barrelLength;
-
-  ctx.strokeStyle = '#94a3b8';
-  ctx.lineWidth = 4;
-  ctx.lineCap = 'round';
-  ctx.beginPath();
-  ctx.moveTo(0, -11);
-  ctx.lineTo(barrelX, -11 + barrelY);
-  ctx.stroke();
-
-  // Muzzle brake ring
-  ctx.strokeStyle = player.color;
-  ctx.lineWidth = 5;
-  ctx.beginPath();
-  ctx.moveTo(barrelX * 0.85, -11 + barrelY * 0.85);
-  ctx.lineTo(barrelX, -11 + barrelY);
-  ctx.stroke();
-
-  // 4. Tank Turret Dome
-  ctx.fillStyle = player.secondaryColor || '#334155';
-  ctx.beginPath();
-  ctx.arc(0, -11, 7, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = '#0f172a';
-  ctx.lineWidth = 1;
-  ctx.stroke();
-
-  ctx.restore();
-
-  // Draw Health Bar & Name Floating Above Tank
-  const healthPercent = Math.max(0, player.health / player.maxHealth);
-  const barWidth = 38;
-  const barHeight = 5;
-  const barX = x - barWidth / 2;
-  const barY = y - 32;
-
-  // Background
-  ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
-  ctx.fillRect(barX - 1, barY - 1, barWidth + 2, barHeight + 2);
-
-  // Health fill
-  ctx.fillStyle = healthPercent > 0.5 ? '#22c55e' : healthPercent > 0.25 ? '#f59e0b' : '#ef4444';
-  ctx.fillRect(barX, barY, barWidth * healthPercent, barHeight);
-
-  // Player Name Tag
-  ctx.fillStyle = '#f8fafc';
-  ctx.font = 'bold 10px monospace';
-  ctx.textAlign = 'center';
-  ctx.fillText(player.name, x, barY - 4);
 }
 
 function drawAimingGuide(

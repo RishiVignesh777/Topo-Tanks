@@ -160,6 +160,19 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
             </div>
           </div>
 
+          {/* Tank Armory & Visual Skins */}
+          <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-4 flex flex-col gap-2">
+            <h3 className="font-bold text-sm text-purple-400 flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4" /> Tank Armory &amp; Unlockable Visual Skins
+            </h3>
+            <p className="text-slate-300">
+              Customize each tank's visual chassis, armor plating, track suspension, and cannon barrel in the <strong className="text-white">Tank Armory</strong>. Choose from military camouflage, radar-absorbent obsidian stealth, neon synthwave, heavy siege goliaths, and prestigious 24K imperial gold!
+            </p>
+            <p className="text-slate-400">
+              Unlock special skins by landing direct hits, dealing massive bombardment damage, or achieving match victories.
+            </p>
+          </div>
+
           {/* Controls & Keyboard Shortcuts */}
           <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-4 flex flex-col gap-2">
             <h3 className="font-bold text-sm text-sky-400 flex items-center gap-1.5">

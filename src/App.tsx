@@ -40,6 +40,8 @@ import { ControlPanel } from './components/ControlPanel';
 import { ArenaSelector } from './components/ArenaSelector';
 import { GameOverModal } from './components/GameOverModal';
 import { HelpModal } from './components/HelpModal';
+import { SkinSelectorModal } from './components/SkinSelectorModal';
+import { checkMilestoneUnlocks, getSkinById } from './game/skins';
 
 export function App() {
   // Current Arena & Topographic Profile
@@ -76,6 +78,10 @@ export function App() {
       isAi: false,
       aiLevel: 'veteran',
       cadetUsesRemaining: 3,
+      skinId:
+        typeof window !== 'undefined'
+          ? localStorage.getItem('topo_tanks_p1_skin') || 'classic'
+          : 'classic',
     },
     {
       id: 'p2',
@@ -94,6 +100,10 @@ export function App() {
       isAi: true,
       aiLevel: 'veteran',
       cadetUsesRemaining: 3,
+      skinId:
+        typeof window !== 'undefined'
+          ? localStorage.getItem('topo_tanks_p2_skin') || 'arctic_fox'
+          : 'arctic_fox',
     },
   ]);
 
@@ -116,7 +126,19 @@ export function App() {
   const [isGameOverOpen, setIsGameOverOpen] = useState<boolean>(false);
   const [isArenaSelectorOpen, setIsArenaSelectorOpen] = useState<boolean>(true);
   const [isHelpOpen, setIsHelpOpen] = useState<boolean>(false);
+  const [isSkinSelectorOpen, setIsSkinSelectorOpen] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(audioService.getIsMuted());
+
+  const handleSelectSkin = (playerId: 'p1' | 'p2', skinId: string) => {
+    setPlayers((prev) =>
+      prev.map((p) => (p.id === playerId ? { ...p, skinId } : p)) as [Player, Player]
+    );
+    try {
+      localStorage.setItem(`topo_tanks_${playerId}_skin`, skinId);
+    } catch {
+      // ignore
+    }
+  };
 
   // Refs for requestAnimationFrame loop to access latest mutable state
   const stateRef = useRef({
@@ -645,12 +667,58 @@ export function App() {
           setWinner(victoriousPlayer);
           setIsGameOverOpen(true);
           audioService.playVictorySound();
+
+          // Check if match victory unlocked special skins like Golden Sovereign
+          const victoryUnlocks = checkMilestoneUnlocks(current.matchStats, true);
+          if (victoryUnlocks.length > 0) {
+            audioService.playWeaponSpecial();
+            victoryUnlocks.forEach((unlockedId, idx) => {
+              const skinObj = getSkinById(unlockedId);
+              setFloatingTexts((prev) => [
+                ...prev,
+                {
+                  id: `unlock_${Date.now()}_${idx}`,
+                  text: `★ UNLOCKED SKIN: ${skinObj.name}!`,
+                  x: 500,
+                  y: 160 + idx * 24,
+                  color: '#facc15',
+                  alpha: 1,
+                  life: 1,
+                  maxLife: 3.5,
+                  vy: -15,
+                },
+              ]);
+            });
+          }
         } else {
           // Switch Turn
           const nextId = current.activePlayerId === 'p1' ? 'p2' : 'p1';
           setActivePlayerId(nextId);
           isCadetAimActiveRef.current = false;
           setIsCadetAimActive(false);
+
+          // Check mid-match milestone unlocks (e.g. Cyber Neon on turn 3, Toxic Hazard on 250 dmg)
+          const midMatchUnlocks = checkMilestoneUnlocks(current.matchStats, false);
+          if (midMatchUnlocks.length > 0) {
+            audioService.playWeaponSpecial();
+            midMatchUnlocks.forEach((unlockedId, idx) => {
+              const skinObj = getSkinById(unlockedId);
+              setFloatingTexts((prev) => [
+                ...prev,
+                {
+                  id: `unlock_${Date.now()}_${idx}`,
+                  text: `★ UNLOCKED SKIN: ${skinObj.name}!`,
+                  x: 500,
+                  y: 160 + idx * 24,
+                  color: '#c084fc',
+                  alpha: 1,
+                  life: 1,
+                  maxLife: 3.0,
+                  vy: -15,
+                },
+              ]);
+            });
+          }
 
           // Reset depleted active weapon to standard shell
           setPlayers((prev) =>
@@ -800,6 +868,7 @@ export function App() {
           ])
         }
         onOpenHelp={() => setIsHelpOpen(true)}
+        onOpenSkinSelector={() => setIsSkinSelectorOpen(true)}
       />
 
       {/* Main Center Viewport: Clean, Unobstructed Destructible Topographic Canvas */}
@@ -874,11 +943,19 @@ export function App() {
           setIsGameOverOpen(false);
           setIsArenaSelectorOpen(true);
         }}
+        onOpenArmory={() => setIsSkinSelectorOpen(true)}
       />
 
       <HelpModal
         isOpen={isHelpOpen}
         onClose={() => setIsHelpOpen(false)}
+      />
+
+      <SkinSelectorModal
+        isOpen={isSkinSelectorOpen}
+        onClose={() => setIsSkinSelectorOpen(false)}
+        players={players}
+        onSelectSkin={handleSelectSkin}
       />
     </div>
   );
